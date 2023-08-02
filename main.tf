@@ -21,8 +21,7 @@ data "cloudinit_config" "server_config" {
 
   part {
     content_type = "text/x-shellscript"
-    content      = templatefile("${path.module}/user_data.sh", {
-    })
+    content      = data.template_file.jenkins_version.rendered
   }
 }
 
@@ -35,6 +34,15 @@ data "aws_iam_policy_document" "instance-assume-role-policy" {
     }
   }
 }
+
+
+data "template_file" "jenkins_version" {
+  template = "${file("${path.module}/user_data.tpl")}"
+  vars = {
+    jenkins_version = "${var.jenkins_version}"
+  }
+}
+
 
 resource "aws_iam_role" "jenkins-role" {
   count              = var.iam_instance_profile == "" ? 1 : 0
@@ -73,6 +81,15 @@ resource "aws_security_group" "jenkins_sg" {
     protocol    = "tcp"
     cidr_blocks = ["${data.aws_vpc.jenkins_vpc.cidr_block}"]
   }
+
+  ingress {
+    description = "Allow access to Jenkins server"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["${data.aws_vpc.jenkins_vpc.cidr_block}"]
+  }
+
   egress {
     description = "Allow traffic to internet for Package installation"
     from_port   = 443
@@ -97,10 +114,10 @@ resource "aws_instance" "ec2" {
   iam_instance_profile    = var.iam_instance_profile == "" ? aws_iam_instance_profile.jenkins-profile[0].name : var.iam_instance_profile
   ebs_optimized           = var.ebs_optimized
   disable_api_termination = var.disable_api_termination
+  associate_public_ip_address = var.assign_public_ip
   #disable_api_stop       = var.disable_api_stop
   user_data               = data.cloudinit_config.server_config.rendered
   source_dest_check       = var.source_dest_check
-
   volume_tags             = merge(var.common_tags, tomap({ "Name" : "${var.project_name_prefix}-jenkins" }))
   tags                    = merge(var.common_tags, tomap({ "Name" : "${var.project_name_prefix}-jenkins" }))
 

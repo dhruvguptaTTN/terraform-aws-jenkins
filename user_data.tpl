@@ -1,16 +1,35 @@
 #!/bin/bash
-sudo yum install java-11-amazon-corretto -y
-sudo yum install unzip -y
-sudo yum install zip -y
 
-sudo wget -O /etc/yum.repos.d/jenkins.repo \
-    https://pkg.jenkins.io/redhat-stable/jenkins.repo
-sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key
-sudo yum install jenkins -y
+sudo -i
+sudo yum install java-11-amazon-corretto -y
+echo "Variable value: ${jenkins_version}" > /opt/version.txt
+sudo wget https://updates.jenkins.io/download/war/${jenkins_version}/jenkins.war -O /opt/jenkins.war
+
+sudo useradd jenkins --home /var/lib/jenkins
+echo "jenkins ALL=(ALL) NOPASSWD: ALL" | sudo EDITOR='tee -a' visudo
+
+sudo chown jenkins:jenkins /var/lib/jenkins
+
+cat << EOF | sudo tee /etc/systemd/system/jenkins.service
+[Unit]
+Description=Jenkins Server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/bin/java -jar /opt/jenkins.war --httpPort=8080
+User=jenkins
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+
+sudo systemctl daemon-reload
 sudo systemctl start jenkins
 sudo systemctl enable jenkins
-sudo systemctl status jenkins
-jenkins --version
+
 
 sudo amazon-linux-extras install docker -y
 sudo usermod -a -G docker ec2-user
@@ -49,3 +68,5 @@ curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 > get
 chmod 700 get_helm.sh
 ./get_helm.sh
 helm version --short | cut -d + -f 1
+
+

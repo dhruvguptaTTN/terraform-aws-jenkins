@@ -1,3 +1,13 @@
+variable "jenkins_version" {
+  description = "Jenkins version you want to install"
+  type        = any
+}
+
+variable "assign_public_ip" {
+  description = "Assign public IP to Jenkins server if true, otherwise, do not assign."
+  type        = bool
+}
+
 variable "subnet_ids" {
   type        = list(string)
   description = "Subnet Ids where server will be launched"
