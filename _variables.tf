@@ -6,6 +6,7 @@ variable "jenkins_version" {
 variable "assign_public_ip" {
   description = "Assign public IP to Jenkins server if true, otherwise, do not assign."
   type        = bool
+  default     = false
 }
 
 variable "subnet_ids" {
@@ -22,7 +23,7 @@ variable "instance_type" {
 variable "project_name_prefix" {
   description = "A string value to describe prefix of all the resources"
   type        = string
-  default     = "dev"
+  default     = "prod"
 }
 
 variable "iam_instance_profile" {

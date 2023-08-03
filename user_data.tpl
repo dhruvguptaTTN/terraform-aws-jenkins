@@ -49,12 +49,29 @@ EOF
 sudo yum install -y kubectl
 kubectl version --client --output=yaml
 
+
+sudo yum update -y
 sudo amazon-linux-extras install nginx1 -y
 sudo systemctl start nginx
 sudo systemctl enable nginx
-sudo systemctl status nginx
-nginx -t
-nginx -version
+
+# Port redirection from 80 to 8080
+sudo tee /etc/nginx/conf.d/port_redirection.conf > /dev/null <<EOT
+server {
+    listen 80;
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+}
+EOT
+
+sudo nginx -t
+sudo systemctl reload nginx
+
 
 sudo yum install git -y
 git --version

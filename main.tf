@@ -84,10 +84,10 @@ resource "aws_security_group" "jenkins_sg" {
 
   ingress {
     description = "Allow access to Jenkins server"
-    from_port   = 8080
-    to_port     = 8080
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["${data.aws_vpc.jenkins_vpc.cidr_block}"]
+    cidr_blocks = [var.assign_public_ip == false ? "${data.aws_vpc.jenkins_vpc.cidr_block}" : "0.0.0.0/0"]  
   }
 
   egress {
