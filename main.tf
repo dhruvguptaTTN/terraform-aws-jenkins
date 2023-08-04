@@ -87,7 +87,7 @@ resource "aws_security_group" "jenkins_sg" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = [var.assign_public_ip == false ? "${data.aws_vpc.jenkins_vpc.cidr_block}" : "0.0.0.0/0"]  
+    cidr_blocks = var.custom_cidr != "" ? [var.custom_cidr] : ["0.0.0.0/0"]
   }
 
   egress {

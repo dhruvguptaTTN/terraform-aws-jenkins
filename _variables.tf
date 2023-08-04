@@ -3,6 +3,12 @@ variable "jenkins_version" {
   type        = any
 }
 
+variable "custom_cidr" {
+  description = "Custom CIDR block. Enter a CIDR block from where you want to allow access to Jenkins."
+  type        = string
+  default     = "0.0.0.0"
+}
+
 variable "assign_public_ip" {
   description = "Assign public IP to Jenkins server if true, otherwise, do not assign."
   type        = bool
