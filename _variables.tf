@@ -1,3 +1,20 @@
+variable "jenkins_version" {
+  description = "Jenkins version you want to install"
+  type        = any
+}
+
+variable "custom_cidr" {
+  description = "Custom CIDR block. Enter a CIDR block from where you want to allow access to Jenkins."
+  type        = string
+  default     = "0.0.0.0/0"
+}
+
+variable "assign_public_ip" {
+  description = "Assign public IP to Jenkins server if true, otherwise, do not assign."
+  type        = bool
+  default     = false
+}
+
 variable "subnet_ids" {
   type        = list(string)
   description = "Subnet Ids where server will be launched"
@@ -12,7 +29,7 @@ variable "instance_type" {
 variable "project_name_prefix" {
   description = "A string value to describe prefix of all the resources"
   type        = string
-  default     = "dev"
+  default     = "prod"
 }
 
 variable "iam_instance_profile" {
