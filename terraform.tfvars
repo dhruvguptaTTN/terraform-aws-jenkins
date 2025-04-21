@@ -1,0 +1,22 @@
+jenkins_version       = "2.414.1"
+custom_cidr           = "0.0.0.0/0"
+assign_public_ip      = true
+subnet_ids            = ["subnet-04898d62545b55d5d"]
+instance_type         = "t3a.medium"
+project_name_prefix   = "prod"
+iam_instance_profile  = ""
+vpc_id                = "vpc-06dab3e2d9cf2f874"
+disable_api_termination = true
+ebs_optimized         = true
+security_group_ids    = []
+common_tags = {
+  "Created By" = "Terraform"
+  "Project"    = "JenkinsSetup"
+  "Env"        = "Prod"
+}
+delete_on_termination = true
+encrypted             = true
+volume_type           = "gp3"
+root_volume_size      = 100
+disable_api_stop      = false
+source_dest_check     = true
