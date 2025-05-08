@@ -11,10 +11,6 @@ data "aws_ami" "amazon-linux-2" {
   owners = ["amazon"]
 }
 
-data "aws_vpc" "jenkins_vpc" {
-  id = var.vpc_id
-}
-
 data "cloudinit_config" "server_config" {
   gzip          = true
   base64_encode = true
@@ -35,14 +31,12 @@ data "aws_iam_policy_document" "instance-assume-role-policy" {
   }
 }
 
-
 data "template_file" "jenkins_version" {
-  template = "${file("${path.module}/user_data.tpl")}"
+  template = file("${path.module}/user_data.tpl")
   vars = {
-    jenkins_version = "${var.jenkins_version}"
+    jenkins_version = var.jenkins_version
   }
 }
-
 
 resource "aws_iam_role" "jenkins-role" {
   count              = var.iam_instance_profile == "" ? 1 : 0
@@ -73,13 +67,13 @@ resource "aws_security_group" "jenkins_sg" {
   vpc_id      = var.vpc_id
   tags        = merge(var.common_tags, tomap({ "Name" : "${var.project_name_prefix}-jenkins-sg" }))
   description = "Jenkins security group"
-  
+
   ingress {
     description = "Allow SSM into the server"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["${data.aws_vpc.jenkins_vpc.cidr_block}"]
+    cidr_blocks = [var.custom_cidr]
   }
 
   ingress {
@@ -107,19 +101,18 @@ resource "aws_security_group" "jenkins_sg" {
 }
 
 resource "aws_instance" "ec2" {
-  ami                     = data.aws_ami.amazon-linux-2.id
-  instance_type           = var.instance_type
-  subnet_id               = var.subnet_ids[0]
-  vpc_security_group_ids  = length(var.security_group_ids) == 0 ? [aws_security_group.jenkins_sg.id] : concat([aws_security_group.jenkins_sg.id], var.security_group_ids)
-  iam_instance_profile    = var.iam_instance_profile == "" ? aws_iam_instance_profile.jenkins-profile[0].name : var.iam_instance_profile
-  ebs_optimized           = var.ebs_optimized
-  disable_api_termination = var.disable_api_termination
+  ami                         = data.aws_ami.amazon-linux-2.id
+  instance_type               = var.instance_type
+  subnet_id                   = var.subnet_ids[0]
+  vpc_security_group_ids      = length(var.security_group_ids) == 0 ? [aws_security_group.jenkins_sg.id] : concat([aws_security_group.jenkins_sg.id], var.security_group_ids)
+  iam_instance_profile        = var.iam_instance_profile == "" ? aws_iam_instance_profile.jenkins-profile[0].name : var.iam_instance_profile
+  ebs_optimized               = var.ebs_optimized
+  disable_api_termination     = var.disable_api_termination
   associate_public_ip_address = var.assign_public_ip
-  #disable_api_stop       = var.disable_api_stop
-  user_data               = data.cloudinit_config.server_config.rendered
-  source_dest_check       = var.source_dest_check
-  volume_tags             = merge(var.common_tags, tomap({ "Name" : "${var.project_name_prefix}-jenkins" }))
-  tags                    = merge(var.common_tags, tomap({ "Name" : "${var.project_name_prefix}-jenkins" }))
+  user_data                   = data.cloudinit_config.server_config.rendered
+  source_dest_check           = var.source_dest_check
+  volume_tags                 = merge(var.common_tags, tomap({ "Name" : "${var.project_name_prefix}-jenkins" }))
+  tags                        = merge(var.common_tags, tomap({ "Name" : "${var.project_name_prefix}-jenkins" }))
 
   root_block_device {
     delete_on_termination = var.delete_on_termination
